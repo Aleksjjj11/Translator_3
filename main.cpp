@@ -11,9 +11,8 @@ const string TRUE = "true";
 string parsingDigit(char s, const string &dig);
 string digitFalse(char s, const string &dig, bool isBlock);
 string digitTrue(char s, const string &dig, bool isBlock);
-void parsingAssigment(char s, bool isBlock);
-void isVariable();
-void isConst();
+string parsingAssigment(char s);
+string parsingVariable(char s, const string &variable);
 
 ofstream fileWrite("output.txt");
 ifstream fileRead;
@@ -199,6 +198,11 @@ string digitTrue(char s, const string &dig, bool isBlock) {
     return "none";
 }
 //Разбор присваивания
-void parsingAssigment(char s, bool isBlock) {
+string parsingAssigment(char s) {
+    string res = "";
+
+}
+//Разбор имени переменной
+string parsingVariable(char s, const string &variable) {
 
 }
