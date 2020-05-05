@@ -8,9 +8,8 @@ using namespace std;
 const string FALSE = "false";
 const string TRUE = "true";
 
-string parsingDigit(char *s, const string &dig);
-string digitFalse(char *s, const string &dig, bool isBlock);
-string digitTrue(char *s, const string &dig, bool isBlock);
+bool StrToBool(string value);
+string GetInversionValue(string name);
 string parsingAssigment(char *s, string &operand);
 string parsingVariable(char *s, string &operand);
 string parsingInversion(char *s, string &operand);
@@ -141,15 +140,6 @@ int main(int argc, char*argv[]) {
                 break;
             }
         }
-        /*if (symbol == 'f') {
-            cout << isdigitFalse(symbol, digit, false) << endl;
-            continue;
-        }
-        if (symbol == 't') {
-            cout << isdigitTrue(symbol, digit, false) << endl;
-            continue;
-        }*/
-
     }
     fileWrite << "End parsing." << endl;
     fileWrite << Indicators.count << " variables defined:" << endl;
@@ -158,53 +148,6 @@ int main(int argc, char*argv[]) {
     }
     fileWrite.close();
     return 0;
-}
-
-string digitFalse(char *s, const string &dig, bool isBlock) {
-    string res = dig;
-    if (FALSE.find(res + *s) == string::npos || FALSE.find(res + *s) > 0)
-        isBlock = true;
-    if (isBlock) {
-        res += *s;
-        while (isalpha(*s) && !fileRead.eof()) {
-            fileRead.get(*s);
-            if (fileRead.eof()) break;
-            res += *s;
-        }
-        cout << "not digit: " << res;
-        return res;
-    }
-    if (FALSE.find(res + *s) == 0 && !(FALSE == res + *s)) {
-        res += s;
-        fileRead.get(*s);
-        return digitFalse(s, res, isBlock);
-    }
-    if (FALSE.find(res + *s) == 0 && FALSE == res + *s) {
-        res += *s;
-        cout << "digit: " << res << endl;
-        return res;
-    }
-
-    return res;
-}
-
-string digitTrue(char *s, const string &dig, bool isBlock) {
-    string res = dig;
-    if (TRUE.find(res + *s) == string::npos || TRUE.find(res + *s) > 0)
-        isBlock = true;
-
-    if (TRUE.find(res + *s) == 0 && !(TRUE == res + *s)) {
-        res += *s;
-        fileRead.get(*s);
-        return digitTrue(s, res, isBlock);
-    }
-    if (TRUE.find(res + *s) == 0 && TRUE == res + *s) {
-        res += *s;
-        cout << "digit: " << res << endl;
-        return res;
-    }
-
-    return res;
 }
 //Разбор присваивания
 string parsingAssigment(char *s, string &operand) {
@@ -226,6 +169,17 @@ string parsingAssigment(char *s, string &operand) {
         operand += *s;
         if (isalpha(*s)) {
             value = parsingVariable(s, operand);
+            switch (*s) {
+                case '|': {
+                    value = parsingOr(s, operand, value);
+                    break;
+                }
+                case '&': {
+                    value = parsingAnd(s, operand, value);
+                    break;
+                }
+            }
+
             if (value == FALSE) {
                 Indicators.Add(*(new Variable(nameVariable, "false")));
             } else if (value == TRUE) {
@@ -259,7 +213,18 @@ string parsingAssigment(char *s, string &operand) {
                 exit(IncorrectInversion);
             }
             value = med;
+            switch (*s) {
+                case '|': {
+                    value = parsingOr(s, operand, value);
+                    break;
+                }
+                case '&': {
+                    value = parsingAnd(s, operand, value);
+                    break;
+                }
+            }
             Indicators.Add(*(new Variable(nameVariable, value)));
+            cout << nameVariable << " " << Indicators.Get(nameVariable)->value << endl;
             res = "(" + nameVariable + "," + value + ")";
             return res;
         }
@@ -291,31 +256,54 @@ string parsingInversion(char *s, string &operand) {
     operand += *s;
     if (isalpha(*s)) {
         value = parsingVariable(s, operand);
-        if (value == FALSE) {
-            return TRUE;
-        } else if (value == TRUE) {
-            return FALSE;
-        } else {
-            Variable* med = Indicators.Get(value);
-            if (med == nullptr) {
-                fileWrite << "Error " << UsingNotDeclaredVariable << ": Using not declared variable." << endl << "Abort parsing." << endl;
-                fileWrite.close();
-                fileRead.close();
-                exit(UsingNotDeclaredVariable);
+        switch (*s) {
+            case '|': {
+                value = parsingOr(s, operand, GetInversionValue(value));
+                break;
             }
-            if (med->value == FALSE)
-                return TRUE;
-            else
-                return FALSE;
+            case '&': {
+                value = parsingAnd(s, operand, GetInversionValue(value));
+                break;
+            }
         }
-    }
+        return GetInversionValue(value);
+    } /*else if (*s == '|') {
+        value = parsingOr(s, operand, GetInversionValue(value));
+    } else if (*s == '&') {
+        value = parsingAnd(s, operand, GetInversionValue(value));*/
     if (*s == '(') {
         fileRead.get(*s);
         operand += *s;
+        if (isalpha(*s)) {
+            value = parsingVariable(s, operand);
+            switch (*s) {
+                case '|': {
+                    value = parsingOr(s, operand, value);
+                    break;
+                }
+                case '&': {
+                    value = parsingAnd(s, operand, value);
+                    break;
+                }
+            }
+            return GetInversionValue(value);
+        }
         if (*s == '~') {
             value = parsingInversion(s, operand);
+            switch (*s) {
+                case '|': {
+                    value = parsingOr(s, operand, value);
+                    break;
+                }
+                case '&': {
+                    value = parsingAnd(s, operand, value);
+                    break;
+                }
+            }
             if (*s == ')') {
+                fileRead.get(*s);
                 operand += *s;
+
                 if (value == FALSE)
                     return TRUE;
                 else if (value == TRUE)
@@ -329,8 +317,129 @@ string parsingInversion(char *s, string &operand) {
 }
 
 string parsingOr(char *s, string &operand, string left) {
-
+    bool leftValue = StrToBool(left);
+    bool rightValue;
+    string right = "";
+    fileRead.get(*s);
+    operand += *s;
+    if (isalpha(*s)) {
+        right = parsingVariable(s, operand);
+        switch (*s) {
+            case '|': {
+                right = parsingOr(s, operand, right);
+                break;
+            }
+            case '&': {
+                right = parsingAnd(s, operand, right);
+                break;
+            }
+            case '~': {
+                right = parsingInversion(s, operand);
+                break;
+            }
+        }
+        rightValue = StrToBool(right);
+        if (rightValue | leftValue)
+            return "true";
+        else
+            return "false";
+    } else if (*s == '~') {
+        right = parsingInversion(s, operand);
+        switch (*s) {
+            case '|': {
+                right = parsingOr(s, operand, right);
+                break;
+            }
+            case '&': {
+                right = parsingAnd(s, operand, right);
+                break;
+            }
+        }
+        rightValue = StrToBool(right);
+        if (rightValue & leftValue)
+            return "true";
+        else
+            return "false";
+    }
 }
 string parsingAnd(char *s, string &operand, string left) {
+    bool leftValue = StrToBool(left);
+    bool rightValue;
+    string right = "";
+    fileRead.get(*s);
+    operand += *s;
+    if (isalpha(*s)) {
+        right = parsingVariable(s, operand);
+        switch (*s) {
+            case '|': {
+                right = parsingOr(s, operand, right);
+                break;
+            }
+            case '&': {
+                right = parsingAnd(s, operand, right);
+                break;
+            }
+            case '~': {
+                right = parsingInversion(s, operand);
+                break;
+            }
+        }
+        rightValue = StrToBool(right);
+        if (rightValue & leftValue)
+            return "true";
+        else
+            return "false";
+    } else if (*s == '~') {
+        right = parsingInversion(s, operand);
+        switch (*s) {
+            case '|': {
+                right = parsingOr(s, operand, right);
+                break;
+            }
+            case '&': {
+                right = parsingAnd(s, operand, right);
+                break;
+            }
+        }
+        rightValue = StrToBool(right);
+        if (rightValue & leftValue)
+            return "true";
+        else
+            return "false";
+    }
+}
 
+bool StrToBool(string value) {
+    if (value != FALSE && value != TRUE) {
+        Variable * med = Indicators.Get(value);
+        if (med == nullptr) {
+            fileWrite << "Error " << UsingNotDeclaredVariable << ": Using not declared variable." << endl << "Abort parsing." << endl;
+            fileWrite.close();
+            fileRead.close();
+            exit(UsingNotDeclaredVariable);
+        }
+        return !(med->value == FALSE);
+    } else {
+        return !(value == FALSE);
+    }
+}
+
+string GetInversionValue(string name) {
+    if (name == FALSE) {
+        return TRUE;
+    } else if (name == TRUE) {
+        return FALSE;
+    } else {
+        Variable* med = Indicators.Get(name);
+        if (med == nullptr) {
+            fileWrite << "Error " << UsingNotDeclaredVariable << ": Using not declared variable." << endl << "Abort parsing." << endl;
+            fileWrite.close();
+            fileRead.close();
+            exit(UsingNotDeclaredVariable);
+        }
+        if (med->value == FALSE)
+            return TRUE;
+        else
+            return FALSE;
+    }
 }
