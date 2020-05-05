@@ -308,7 +308,20 @@ string parsingInversion(char *s, string &operand) {
         }
     }
     if (*s == '(') {
-
+        fileRead.get(*s);
+        operand += *s;
+        if (*s == '~') {
+            value = parsingInversion(s, operand);
+            if (*s == ')') {
+                operand += *s;
+                if (value == FALSE)
+                    return TRUE;
+                else if (value == TRUE)
+                    return FALSE;
+                else
+                    return "none";
+            }
+        }
     }
     return "none";
 }
