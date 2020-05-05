@@ -286,6 +286,21 @@ string parsingInversion(char *s, string &operand) {
                     break;
                 }
             }
+            if (*s == ')') {
+                fileRead.get(*s);
+                operand += *s;
+                switch (*s) {
+                    case '|': {
+                        value = parsingOr(s, operand, value);
+                        break;
+                    }
+                    case '&': {
+                        value = parsingAnd(s, operand, value);
+                        break;
+                    }
+                }
+                return GetInversionValue(value);
+            }
             return GetInversionValue(value);
         }
         if (*s == '~') {
@@ -303,13 +318,17 @@ string parsingInversion(char *s, string &operand) {
             if (*s == ')') {
                 fileRead.get(*s);
                 operand += *s;
-
-                if (value == FALSE)
-                    return TRUE;
-                else if (value == TRUE)
-                    return FALSE;
-                else
-                    return "none";
+                switch (*s) {
+                    case '|': {
+                        value = parsingOr(s, operand, value);
+                        break;
+                    }
+                    case '&': {
+                        value = parsingAnd(s, operand, value);
+                        break;
+                    }
+                }
+                return GetInversionValue(value);
             }
         }
     }
