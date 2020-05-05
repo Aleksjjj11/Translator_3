@@ -14,6 +14,8 @@ string digitTrue(char *s, const string &dig, bool isBlock);
 string parsingAssigment(char *s, string &operand);
 string parsingVariable(char *s, string &operand);
 string parsingInversion(char *s, string &operand);
+string parsingOr(char *s, string &operand, string left);
+string parsingAnd(char *s, string &operand, string left);
 
 ofstream fileWrite("output.txt");
 ifstream fileRead;
@@ -324,4 +326,11 @@ string parsingInversion(char *s, string &operand) {
         }
     }
     return "none";
+}
+
+string parsingOr(char *s, string &operand, string left) {
+
+}
+string parsingAnd(char *s, string &operand, string left) {
+
 }
