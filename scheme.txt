@@ -1,0 +1,21 @@
+D-> true | false                                                D-digit
+A-> а|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z;        A-attribute
+C->D                                                            C-const
+I-> AI | A                                                      I-indicate
+//Operation
+E->E "|" T | T                                                  Operation or
+T-> T&M | M                                                     Operation and
+M-> ~M | (E) | I | C                                            Operation inversion
+//Implementation
+S->(I,E)
+
+//////////////////////////////////////////////////////////////////////Nauru's Scheme
+<D>::= true | false;
+<A>::= а|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z;
+<C>::= <D>;
+<I>::= <A><I> | <A>;
+//Operation
+<M>::= ~<M> | <I> | <C> | "("<E>")";
+<T>::= <T>&<M> | <M>;
+<E>::= <E>"|"<T> | <T>;
+<S>::="("<I>","<E>")";
