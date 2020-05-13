@@ -5,7 +5,7 @@ I-> AI | A                                                      I-indicate
 //Operation
 E->E "|" T | T                                                  Operation or
 T-> T&M | M                                                     Operation and
-M-> ~M | (E) | I | C                                            Operation inversion
+M-> (E) | ~M | I | C                                            Operation inversion
 //Implementation
 S->(I,E)
 
